@@ -8,69 +8,65 @@ import (
 	"unicode/utf8"
 )
 
-var ErrInvalidString = errors.New("invalid string")
-
-func Unpack(input string) (string, error) {
-	// Place your code here.
-
-	if input == "" {
-		return "", nil
-	}
-
-	if isIncorrectNumbersExists(input) || isLineStartsWithDigit(input) {
-		return "", ErrInvalidString
-	}
-
-	result := extractSymbolsMultiplierInfos(input)
-	return convertString(input, result), nil
-}
-
-func isLineStartsWithDigit(line string) bool {
-	// line starts with digit
-	searcher := regexp.MustCompile(`^\d+`)
-	return searcher.Match([]byte(line))
-}
-
-func isIncorrectNumbersExists(line string) bool {
+var (
+	ErrInvalidString           = errors.New("invalid string")
+	isLineStartsWithDigitRegex = regexp.MustCompile(`^\d+`)
 	// first part - escaped characters, that are not backslash or digit, like \n,
 	// except line start, cause in the middle of the string \\n is correct,
 	// second part - escaped character that not backslash or digit in line start
-	// third - sequental digits, that aren't escaped digit and digit
-	searcher := regexp.MustCompile(`[^\\]\\[^\\\d]|^\\[^\\\d]|[^\\]\d{2,}`)
-	return searcher.Match([]byte(line))
+	// third - sequential digits, that aren't escaped digit and digit.
+	isIncorrectNumbersExistsRegex = regexp.MustCompile(`[^\\]\\[^\\\d]|^\\[^\\\d]|[^\\]\d{2,}`)
+	symbolsSubsequenceRegex       = regexp.MustCompile(`\\\d{1,2}|\D\d|\\{2}\d?`)
+)
+
+var inputString string
+
+func Unpack(input string) (string, error) {
+	// Place your code here.
+	inputString = input
+
+	if inputString == "" {
+		return "", nil
+	}
+
+	if isLineStartsWithDigitRegex.Match([]byte(inputString)) || isIncorrectNumbersExistsRegex.Match([]byte(inputString)) {
+		return "", ErrInvalidString
+	}
+
+	symbolsInfo := extractSymbolsMultiplierInfos()
+	return convertString(&symbolsInfo), nil
 }
 
-func convertString(line string, stringInfo []symbolMultiplierInfo) string {
+func convertString(stringInfo *[]symbolMultiplierInfo) string {
 	var strBuilder strings.Builder
-	var caretePos uint32
-	for _, symbolInfo := range stringInfo {
-		if symbolInfo.startIndex-caretePos > 0 {
-			strBuilder.WriteString(line[caretePos:symbolInfo.startIndex])
+	var caretPos int
+	for _, symbolInfo := range *stringInfo {
+		if symbolInfo.startIndex-caretPos > 0 {
+			strBuilder.WriteString(inputString[caretPos:symbolInfo.startIndex])
 		}
 
 		strBuilder.WriteString(strings.Repeat(symbolInfo.character, symbolInfo.repeatNumber))
-		caretePos = symbolInfo.endIndex
+		caretPos = symbolInfo.endIndex
 	}
-	if int(caretePos) < utf8.RuneCountInString(line) {
-		strBuilder.WriteString(line[caretePos:])
+	if caretPos < utf8.RuneCountInString(inputString) {
+		strBuilder.WriteString(inputString[caretPos:])
 	}
 	return strBuilder.String()
 }
 
-func extractSymbolsMultiplierInfos(line string) []symbolMultiplierInfo {
-	searcher := regexp.MustCompile(`\\\d{1,2}|\D\d|\\{2}\d?`)
-	data := searcher.FindAllSubmatchIndex([]byte(line), -1)
-	symbInfo := make([]symbolMultiplierInfo, len(data))
+func extractSymbolsMultiplierInfos() []symbolMultiplierInfo {
+	subsequences := symbolsSubsequenceRegex.FindAllSubmatchIndex([]byte(inputString), -1)
+	symbInfo := make([]symbolMultiplierInfo, len(subsequences))
 
-	for index, loc := range data {
-		symbInfo[index] = extractSymbolInfo(line, loc[0], loc[1])
+	for index, loc := range subsequences {
+		symbInfo[index] = extractSymbolInfo(loc[0], loc[1])
 	}
 	return symbInfo
 }
 
-func extractSymbolInfo(line string, start int, end int) symbolMultiplierInfo {
+func extractSymbolInfo(start int, end int) symbolMultiplierInfo {
 	var repeat int
-	subsequence := line[start:end]
+	subsequence := inputString[start:end]
 	symbol, single := extractSymbol(subsequence)
 	if single {
 		repeat = 1
@@ -78,8 +74,8 @@ func extractSymbolInfo(line string, start int, end int) symbolMultiplierInfo {
 		repeat, _ = strconv.Atoi(subsequence[utf8.RuneCountInString(subsequence)-1:])
 	}
 	return symbolMultiplierInfo{
-		startIndex:   uint32(start),
-		endIndex:     uint32(end),
+		startIndex:   start,
+		endIndex:     end,
 		repeatNumber: repeat,
 		character:    symbol,
 	}
@@ -96,8 +92,8 @@ func extractSymbol(sequence string) (string, bool) {
 }
 
 type symbolMultiplierInfo struct {
-	startIndex   uint32
-	endIndex     uint32
+	startIndex   int
+	endIndex     int
 	repeatNumber int
 	character    string
 }
