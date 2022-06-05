@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -42,6 +42,25 @@ var text = `Как видите, он  спускается  по  лестни�
 	иногда,  особенно  когда  папа  дома,  он больше любит тихонько
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
+
+var alternateText = `竹ニ ょノ 気あヘ河ボル温閲宴塩慰 じ夜 煙ョハ囲ぃャ 
+	はゥ んト 下乙キヿー姻ぢ運 哀ドノス壱液奥 やヸ陰 ぷ閲ドフ萎俺ヒぷ凹な生 
+	陰ベ案ヨ 憶ア浦咽ド代威履衣ブ医 ーァ陰悦ちマドこ謁ャゴぺ線者 仮ニ茨ア暗ご押ア韻 
+	ずヹ陰サだ音温ユ ユ延 怨めね ポ わ竹ホ殴 俺まッレズ ピきギス欧飲めラ安 円がゞ謁炎ン案駅 
+	ドて旺 めロ可くフ現づ へだ ダ媛 閲卸イ マダス芋ピ炎押ザ ぬイぎォうホ遠緯疫新ヌ艶ヺマ 
+	横グ エ ブが穏淫を為ゟ押マド悪ぬそ下ィロ園唄悪唄安ぃ殴蒸の げ科 日尉煙泳ふ価ーせーヂ艶プでヵ 
+	だデ 線ゃのあ横ト挨姻新 ヺ沿煙ゞくム握え内あ臆の慰いヌゐ悦ぜ行俺悪 
+	ゖ唄ヿうそドば ゠ 夜マ屋くぬ音桜ざカ閲ポ位ぇ生 や 虞ェッキヘぼフ どあ 
+	媛び価炎ンはッヮァな往ほぁん スわラ宇ス往 竹ニ 竹ニ 竹ニ 竹ニ
+	竹ニ: げ科 じ夜 レズ レズ
+	竹ニ: ずヹ陰サだ音温ユ\どあ
+	じ夜;ずヹ陰サだ音温ユ #だデ 15+15+15+15+15+15=90,90,'90';"90"
+	はゥ - はゥ;はゥ,はゥ *はゥ
+	レズ?どあ!`
+
+var frenchCakes = `съешь же ещё этих мягких французских булок, да выпей чаю`
+
+var shortSentence = `Yeah - yeah, just eat it already, yeah`
 
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
@@ -78,5 +97,48 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("alternate positive text with different separators", func(t *testing.T) {
+		expected := []string{
+			"竹ニ",       // 7
+			"15",       // 6
+			"はゥ",       // 6
+			"90",       // 4
+			"じ夜",       // 3
+			"ずヹ陰サだ音温ユ", // 3
+			"どあ",       // 3
+			"レズ",       // 3
+			"げ科",       // 2
+			"だデ",       // 2
+		}
+		require.Equal(t, expected, Top10(alternateText))
+	})
+
+	t.Run("text with 10 unique words", func(t *testing.T) {
+		expected := []string{
+			"булок",       // 1
+			"выпей",       // 1
+			"да",          // 1
+			"ещё",         // 1
+			"же",          // 1
+			"мягких",      // 1
+			"съешь",       // 1
+			"французских", // 1
+			"чаю",         // 1
+			"этих",        // 1
+		}
+		require.Equal(t, expected, Top10(frenchCakes))
+	})
+
+	t.Run("test sentence with less than 10 words", func(t *testing.T) {
+		expected := []string{
+			"yeah",    // 3
+			"already", // 1
+			"eat",     // 1
+			"it",      // 1
+			"just",    // 1
+		}
+		require.Equal(t, expected, Top10(shortSentence))
 	})
 }
