@@ -1,6 +1,6 @@
 module github.com/skeltis/otus_go_hw/hw04_lru_cache
 
-go 1.16
+go 1.18
 
 require github.com/stretchr/testify v1.7.0
 
