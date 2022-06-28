@@ -113,7 +113,9 @@ func TestRun(t *testing.T) {
 		}, time.Millisecond*100, time.Millisecond*10, "extra tasks were started")
 		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
 	})
+}
 
+func TestContractCases(t *testing.T) {
 	t.Run("negative error threshold returns corresponding error", func(t *testing.T) {
 		workersCount := 10
 		maxErrorsCount := -1
@@ -136,7 +138,6 @@ func TestRun(t *testing.T) {
 		tasks := make([]Task, 0, tasksCount)
 
 		var runTasksCount int32
-		var sumTime time.Duration
 
 		for i := 0; i < tasksCount; i++ {
 			if i < nilTasks {
@@ -153,14 +154,11 @@ func TestRun(t *testing.T) {
 		workersCount := 5
 		maxErrorsCount := 1
 
-		start := time.Now()
 		err := Run(tasks, workersCount, maxErrorsCount)
-		elapsedTime := time.Since(start)
 		require.NoError(t, err)
 		require.Eventually(t, func() bool {
 			return runTasksCount == int32(tasksCount-nilTasks)
 		}, time.Millisecond*100, time.Millisecond*10, "extra tasks were started")
-		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 
 	t.Run("nil task slice - no error, no execution", func(t *testing.T) {

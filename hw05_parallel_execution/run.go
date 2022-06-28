@@ -96,24 +96,18 @@ func (handler *taskHandler) waitCompletion() error {
 }
 
 func (handler *taskHandler) waitForTasksCompletion() {
-	for {
-		select {
-		case result, ok := <-handler.resultChannel:
-			if !ok {
-				return
-			}
-
-			if result != nil {
-				atomic.AddInt64(&handler.errorCount, 1)
-			}
-
-			if handler.errorCount < handler.errorThreshold && handler.taskPosition < handler.totalTasks {
-				go runTask(handler.tasks[handler.taskPosition], handler.resultChannel)
-				atomic.AddInt64(&handler.taskPosition, 1)
-			} else {
-				handler.finishLock.Done()
-			}
+	for result := range handler.resultChannel {
+		if result != nil {
+			atomic.AddInt64(&handler.errorCount, 1)
 		}
+
+		if handler.errorCount < handler.errorThreshold && handler.taskPosition < handler.totalTasks {
+			go runTask(handler.tasks[handler.taskPosition], handler.resultChannel)
+			atomic.AddInt64(&handler.taskPosition, 1)
+			continue
+		}
+
+		handler.finishLock.Done()
 	}
 }
 
