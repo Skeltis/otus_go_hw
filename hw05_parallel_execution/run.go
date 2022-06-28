@@ -6,12 +6,28 @@ import (
 	"sync/atomic"
 )
 
-var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
+var (
+	ErrErrorsLimitExceeded      = errors.New("errors limit exceeded")
+	ErrNegativeErrorThreshold   = errors.New("errors limit can't be less than 0")
+	ErrLessThanOneParallelCount = errors.New("can't execute with less than 1 parallel task")
+)
 
 type Task func() error
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
+	if n < 1 {
+		return ErrLessThanOneParallelCount
+	}
+
+	if m < 0 {
+		return ErrNegativeErrorThreshold
+	}
+
+	if !doesAnyTasksPresent(tasks) {
+		return nil
+	}
+
 	taskHandle := newTaskHandler(tasks, n, m)
 	taskHandle.start()
 	return taskHandle.waitCompletion()
@@ -28,12 +44,30 @@ type taskHandler struct {
 	finishLock     sync.WaitGroup
 }
 
-func newTaskHandler(tasks []Task, n, m int) *taskHandler {
-	return &taskHandler{tasks: tasks,
-		taskThreshold:  int64(n),
-		errorThreshold: int64(m),
+func doesAnyTasksPresent(tasks []Task) bool {
+	nonNilTasksPresent := false
+	for _, task := range tasks {
+		if task != nil {
+			nonNilTasksPresent = true
+		}
+	}
+	return nonNilTasksPresent
+}
+
+func newTaskHandler(tasks []Task, parallelTasksNumber, maxErrors int) *taskHandler {
+	handler := &taskHandler{
+		tasks:          tasks,
+		taskThreshold:  int64(parallelTasksNumber),
+		errorThreshold: int64(maxErrors),
 		totalTasks:     int64(len(tasks)),
-		resultChannel:  make(chan error)}
+		resultChannel:  make(chan error),
+	}
+
+	if maxErrors == 0 {
+		handler.errorCount = -1
+	}
+
+	return handler
 }
 
 func (handler *taskHandler) start() {
@@ -44,7 +78,7 @@ func (handler *taskHandler) start() {
 		atomic.AddInt64(&handler.taskPosition, handler.totalTasks)
 		handler.finishLock.Add(int(handler.totalTasks))
 	}
-	go handler.checker()
+	go handler.waitForTasksCompletion()
 
 	var i int64
 	for i = 0; i < handler.taskThreshold && i < handler.totalTasks; i++ {
@@ -61,7 +95,7 @@ func (handler *taskHandler) waitCompletion() error {
 	return nil
 }
 
-func (handler *taskHandler) checker() {
+func (handler *taskHandler) waitForTasksCompletion() {
 	for {
 		select {
 		case result, ok := <-handler.resultChannel:
@@ -84,5 +118,9 @@ func (handler *taskHandler) checker() {
 }
 
 func runTask(curTask Task, resultChannel chan<- error) {
-	resultChannel <- curTask()
+	if curTask != nil {
+		resultChannel <- curTask()
+	} else {
+		resultChannel <- nil
+	}
 }
