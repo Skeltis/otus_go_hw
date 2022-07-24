@@ -89,6 +89,7 @@ func TestCopy(t *testing.T) {
 			require.NoError(t, err)
 
 			var expectedBytes []byte
+			// windows doesn't skip 0x0A on copying
 			if runtime.GOOS == "windows" {
 				fileBytes, err := os.ReadFile(inputFile)
 				require.NoError(t, err)
