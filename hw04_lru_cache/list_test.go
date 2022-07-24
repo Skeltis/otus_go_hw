@@ -48,4 +48,66 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
+
+	t.Run("checking prev\\next links with elements adding and removal", func(t *testing.T) {
+		testList := NewList()
+
+		testList.PushFront(10) // [10]
+		require.Equal(t, 1, testList.Len())
+		require.Equal(t, 10, testList.Front().Value)
+		require.Equal(t, 10, testList.Back().Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Nil(t, testList.Front().Next)
+		require.Nil(t, testList.Back().Prev)
+		require.Nil(t, testList.Back().Next)
+
+		testList.PushBack(20) // [10, 20]
+
+		require.Equal(t, 2, testList.Len())
+		require.Equal(t, 10, testList.Front().Value)
+		require.Equal(t, 20, testList.Front().Next.Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Nil(t, testList.Front().Next.Next)
+		require.Equal(t, 20, testList.Back().Value)
+		require.Equal(t, 10, testList.Back().Prev.Value)
+		require.Nil(t, testList.Back().Next)
+		require.Nil(t, testList.Back().Prev.Prev)
+
+		testList.PushFront(30) // [30, 10, 20]
+
+		require.Equal(t, 3, testList.Len())
+
+		require.Equal(t, 30, testList.Front().Value)
+		require.Equal(t, 10, testList.Front().Next.Value)
+		require.Equal(t, 20, testList.Front().Next.Next.Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Nil(t, testList.Front().Next.Next.Next)
+
+		require.Equal(t, 20, testList.Back().Value)
+		require.Equal(t, 10, testList.Back().Prev.Value)
+		require.Equal(t, 30, testList.Back().Prev.Prev.Value)
+		require.Nil(t, testList.Back().Next)
+		require.Nil(t, testList.Back().Prev.Prev.Prev)
+
+		testList.Remove(testList.Front()) // [10, 20]
+		require.Equal(t, 2, testList.Len())
+		require.Equal(t, 10, testList.Front().Value)
+		require.Equal(t, 20, testList.Back().Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Equal(t, 20, testList.Front().Next.Value)
+		require.Equal(t, 10, testList.Back().Prev.Value)
+		require.Nil(t, testList.Back().Next)
+
+		testList.Remove(testList.Back()) // [10]
+		require.Equal(t, 1, testList.Len())
+		require.Equal(t, 10, testList.Front().Value)
+		require.Equal(t, 10, testList.Back().Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Nil(t, testList.Front().Next)
+		require.Nil(t, testList.Back().Prev)
+		require.Nil(t, testList.Back().Next)
+
+		testList.Remove(testList.Front()) // []
+		require.Equal(t, 0, testList.Len())
+	})
 }
