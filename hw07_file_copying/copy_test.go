@@ -70,7 +70,7 @@ func TestCopy(t *testing.T) {
 		},
 		{
 			offset:           100,
-			limit:            10000,
+			limit:            1000,
 			expectedFilePath: path.Join("testdata", "out_offset100_limit1000.txt"),
 		},
 		{
