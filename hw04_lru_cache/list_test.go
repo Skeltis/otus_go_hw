@@ -74,34 +74,44 @@ func TestList(t *testing.T) {
 		require.Nil(t, testList.Back().Prev.Prev)
 
 		testList.PushFront(30) // [30, 10, 20]
-
 		require.Equal(t, 3, testList.Len())
-
 		require.Equal(t, 30, testList.Front().Value)
 		require.Equal(t, 10, testList.Front().Next.Value)
 		require.Equal(t, 20, testList.Front().Next.Next.Value)
 		require.Nil(t, testList.Front().Prev)
 		require.Nil(t, testList.Front().Next.Next.Next)
-
 		require.Equal(t, 20, testList.Back().Value)
 		require.Equal(t, 10, testList.Back().Prev.Value)
 		require.Equal(t, 30, testList.Back().Prev.Prev.Value)
 		require.Nil(t, testList.Back().Next)
 		require.Nil(t, testList.Back().Prev.Prev.Prev)
 
-		testList.Remove(testList.Front()) // [10, 20]
-		require.Equal(t, 2, testList.Len())
-		require.Equal(t, 10, testList.Front().Value)
-		require.Equal(t, 20, testList.Back().Value)
+		testList.MoveToFront(testList.Back()) // [20, 30, 10]
+		require.Equal(t, 3, testList.Len())
+		require.Equal(t, 20, testList.Front().Value)
+		require.Equal(t, 30, testList.Front().Next.Value)
+		require.Equal(t, 10, testList.Front().Next.Next.Value)
 		require.Nil(t, testList.Front().Prev)
-		require.Equal(t, 20, testList.Front().Next.Value)
-		require.Equal(t, 10, testList.Back().Prev.Value)
+		require.Nil(t, testList.Front().Next.Next.Next)
+		require.Equal(t, 10, testList.Back().Value)
+		require.Equal(t, 30, testList.Back().Prev.Value)
+		require.Equal(t, 20, testList.Back().Prev.Prev.Value)
+		require.Nil(t, testList.Back().Next)
+		require.Nil(t, testList.Back().Prev.Prev.Prev)
+
+		testList.Remove(testList.Front()) // [30, 10]
+		require.Equal(t, 2, testList.Len())
+		require.Equal(t, 30, testList.Front().Value)
+		require.Equal(t, 10, testList.Back().Value)
+		require.Nil(t, testList.Front().Prev)
+		require.Equal(t, 10, testList.Front().Next.Value)
+		require.Equal(t, 30, testList.Back().Prev.Value)
 		require.Nil(t, testList.Back().Next)
 
-		testList.Remove(testList.Back()) // [10]
+		testList.Remove(testList.Back()) // [30]
 		require.Equal(t, 1, testList.Len())
-		require.Equal(t, 10, testList.Front().Value)
-		require.Equal(t, 10, testList.Back().Value)
+		require.Equal(t, 30, testList.Front().Value)
+		require.Equal(t, 30, testList.Back().Value)
 		require.Nil(t, testList.Front().Prev)
 		require.Nil(t, testList.Front().Next)
 		require.Nil(t, testList.Back().Prev)
