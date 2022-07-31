@@ -8,7 +8,7 @@ import (
 
 func TestRunCmd(t *testing.T) {
 	t.Run("successful command, exit code = 0", func(t *testing.T) {
-		exitCode := RunCmd([]string{"cd", "testdata"}, nil)
+		exitCode := RunCmd([]string{"go", "version"}, nil)
 		require.Equal(t, 0, exitCode)
 	})
 

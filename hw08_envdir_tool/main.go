@@ -28,8 +28,8 @@ func main() {
 
 func getDirectory(arguments []string) (string, error) {
 	folderPath := arguments[0]
-	_, err := os.Stat(folderPath)
-	if os.IsNotExist(err) {
+
+	if _, err := os.Stat(folderPath); err != nil {
 		return "", fmt.Errorf("error while extracting folder argument: %w", err)
 	}
 	return folderPath, nil
