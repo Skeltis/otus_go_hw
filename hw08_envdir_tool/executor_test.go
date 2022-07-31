@@ -13,7 +13,7 @@ func TestRunCmd(t *testing.T) {
 	})
 
 	t.Run("errored command, exit code = 1", func(t *testing.T) {
-		exitCode := RunCmd([]string{"netstat", "-fake"}, nil)
-		require.Equal(t, 1, exitCode)
+		exitCode := RunCmd([]string{"go", "-fake"}, nil)
+		require.Equal(t, 2, exitCode)
 	})
 }
