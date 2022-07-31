@@ -1,7 +1,19 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestRunCmd(t *testing.T) {
-	// Place your code here
+	t.Run("successful command, exit code = 0", func(t *testing.T) {
+		exitCode := RunCmd([]string{"cd", "testdata"}, nil)
+		require.Equal(t, 0, exitCode)
+	})
+
+	t.Run("errored command, exit code = 1", func(t *testing.T) {
+		exitCode := RunCmd([]string{"netstat", "-fake"}, nil)
+		require.Equal(t, 1, exitCode)
+	})
 }
